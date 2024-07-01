@@ -12,6 +12,5 @@ knitr::opts_chunk$set(echo = TRUE)
 # Load clustered dataset
 ```{r}
 ahlers_Seurat <- readRDS(file = "/well/fullerton/users/rxw025/analyses/skin/scRNA_skin/Processed_data/Ahlers_10xsc/Ahlers_clustered_Seurat.Rds")
-
 ```
 

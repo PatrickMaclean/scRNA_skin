@@ -116,7 +116,7 @@ ahlers_Seurat_list[[i]] <- FindVariableFeatures(ahlers_Seurat_list[[i]], selecti
 # Integrate
 ahlers_anchors <- FindIntegrationAnchors(object.list = ahlers_Seurat_list, dims = 1:30)
 
-IntegrateData(anchorset = ahlers_anchors, dims = 1:30)
+ahlers_Seurat <- IntegrateData(anchorset = ahlers_anchors, dims = 1:30, new.assay.name = 'integrated')
 ```
 
 
