@@ -1,0 +1,164 @@
+"0","# Integrate
+ahlers_anchors <- FindIntegrationAnchors(object.list = ahlers_Seurat_list, dims = 1:30)
+"
+"2","Warning: Some cell names are duplicated across objects provided. Renaming to enforce unique cell names."
+"2","Computing 2000 integration features
+"
+"2","Scaling features for provided objects
+"
+"1",""
+"1"," "
+"1"," |                                                  |"
+"1"," "
+"1","0 % ~calculating  "
+"1",""
+"1"," "
+"1"," |++++++++                                          |"
+"1"," "
+"1","14% ~07s          "
+"1",""
+"1"," "
+"1"," |+++++++++++++++                                   |"
+"1"," "
+"1","29% ~05s          "
+"1",""
+"1"," "
+"1"," |++++++++++++++++++++++                            |"
+"1"," "
+"1","43% ~04s          "
+"1",""
+"1"," "
+"1"," |+++++++++++++++++++++++++++++                     |"
+"1"," "
+"1","57% ~03s          "
+"1",""
+"1"," "
+"1"," |++++++++++++++++++++++++++++++++++++              |"
+"1"," "
+"1","71% ~02s          "
+"1",""
+"1"," "
+"1"," |+++++++++++++++++++++++++++++++++++++++++++       |"
+"1"," "
+"1","86% ~01s          "
+"1",""
+"1"," "
+"1"," |++++++++++++++++++++++++++++++++++++++++++++++++++|"
+"1"," "
+"1","100% elapsed=05s  "
+"1","
+"
+"2","Finding all pairwise anchors
+"
+"1",""
+"1"," "
+"1"," |                                                  |"
+"1"," "
+"1","0 % ~calculating  "
+"2","Running CCA
+"
+"2","Merging objects
+"
+"2","Finding neighborhoods
+"
+"2","Finding anchors
+"
+"2","	Found 34339 anchors
+"
+"2","Filtering anchors
+"
+"2","	Retained 12233 anchors
+"
+"1",""
+"1"," "
+"1"," |+++                                               |"
+"1"," "
+"1","5 % ~02h 41m 55s  "
+"2","Running CCA
+"
+"2","Merging objects
+"
+"2","Finding neighborhoods
+"
+"2","Finding anchors
+"
+"2","	Found 40393 anchors
+"
+"2","Filtering anchors
+"
+"2","	Retained 11993 anchors
+"
+"1",""
+"1"," "
+"1"," |+++++                                             |"
+"1"," "
+"1","10% ~02h 45m 14s  "
+"2","Running CCA
+"
+"2","Merging objects
+"
+"2","Finding neighborhoods
+"
+"2","Finding anchors
+"
+"2","	Found 31868 anchors
+"
+"2","Filtering anchors
+"
+"2","	Retained 10069 anchors
+"
+"1",""
+"1"," "
+"1"," |++++++++                                          |"
+"1"," "
+"1","14% ~02h 22m 15s  "
+"2","Running CCA
+"
+"2","Merging objects
+"
+"2","Finding neighborhoods
+"
+"2","Finding anchors
+"
+"2","	Found 33725 anchors
+"
+"2","Filtering anchors
+"
+"2","	Retained 11133 anchors
+"
+"1",""
+"1"," "
+"1"," |++++++++++                                        |"
+"1"," "
+"1","19% ~02h 03m 39s  "
+"2","Running CCA
+"
+"2","Merging objects
+"
+"2","Finding neighborhoods
+"
+"2","Finding anchors
+"
+"2","	Found 30167 anchors
+"
+"2","Filtering anchors
+"
+"2","	Retained 12776 anchors
+"
+"1",""
+"1"," "
+"1"," |++++++++++++                                      |"
+"1"," "
+"1","24% ~01h 46m 54s  "
+"2","Running CCA
+"
+"2","Merging objects
+"
+"2","Finding neighborhoods
+"
+"2","Finding anchors
+"
+"2","	Found 31025 anchors
+"
+"2","Filtering anchors
+"

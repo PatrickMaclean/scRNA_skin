@@ -1,0 +1,30 @@
+{
+    "id": "7DE2B21A",
+    "path": "/exafs1/well/fullerton/users/rxw025/analyses/skin/RNA-seq/1_Seurat_process.Rmd",
+    "project_path": null,
+    "type": "r_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1717419469889.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "161,16",
+        "scrollLine": "149",
+        "last_setup_crc32": "92ef9233bb338d19",
+        "docOutlineVisible": "1",
+        "docOutlineSize": "251"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1719843814,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1719843815072,
+    "read_only": false,
+    "read_only_alternatives": []
+}

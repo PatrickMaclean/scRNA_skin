@@ -1,0 +1,18 @@
+"0","ahlers_Seurat <- IntegrateLayers(object = ahlers_Seurat,
+                method = CCAIntegration,
+                orig.reduction = ""pca"",
+                new.reduction = ""integrated.cca"",
+                assay = ""RNA"",
+    verbose = T)
+"
+"2","Warning: multiple layers are identified by scale.data.old scale.data.young
+ only the first layer is used"
+"2","Warning: multiple layers are identified by scale.data.old scale.data.young
+ only the first layer is used"
+"2","Warning: multiple layers are identified by scale.data.old scale.data.young
+ only the first layer is used"
+"2","Warning: multiple layers are identified by scale.data.old scale.data.young
+ only the first layer is used"
+"2","Error in object[scale.layer][features, Cells(object.list[[i]])] : 
+  subscript out of bounds
+"

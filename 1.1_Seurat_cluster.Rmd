@@ -1,0 +1,158 @@
+---
+title: "1.1_Seurat_cluster"
+author: "Patrick Maclean"
+date: "2024-06-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(Seurat)
+library(tidyverse)
+library(scales)
+library(thematic)
+```
+
+```{r, include=FALSE}
+colour_sequence <- c("#35274A", "#F2300F")
+
+thematic_on(
+  bg = "auto", fg = "auto", accent = "auto", font = NA,
+  sequential = colour_sequence, qualitative = okabe_ito()
+)
+show_col(colour_sequence)
+
+theme_set(theme_bw() +
+        theme(axis.text = element_text(size = 10)))
+```
+
+# Import object
+```{r}
+ahlers_Seurat <- readRDS(file = "ahlers_Seurat, file = "/well/fullerton/users/rxw025/analyses/skin/scRNA_skin/Processed_data/Ahlers_10xsc/Ahlers_filtered_Seurat.Rds"")
+```
+
+
+
+# QC
+
+## Find variable features
+```{r}
+ahlers_Seurat <- FindVariableFeatures(ahlers_Seurat, selection.method = "vst", nfeatures = 2000)
+
+# Identify the 10 most highly variable genes
+top10 <- head(VariableFeatures(ahlers_Seurat), 10)
+
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(ahlers_Seurat)
+plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
+plot1 / plot2
+```
+
+
+
+## Dimensionality reduction
+```{r}
+# Run PCA on selected 2000 most variable features
+ahlers_Seurat <- RunPCA(ahlers_Seurat, features = VariableFeatures(object = ahlers_Seurat))
+
+# Inspect PCs
+print(ahlers_Seurat[["pca"]], dims = 1:5, nfeatures = 5)
+VizDimLoadings(ahlers_Seurat, dims = 1:2, reduction = "pca")
+
+# Test for elbow on plot
+ElbowPlot(ahlers_Seurat, ndims = 40)
+```
+
+
+## Cluster cells
+Use KNN algorithm to find cells' neighbours, then draw clusters using Louvain algorithm
+```{r}
+# Select appropriate number of PCs - go for 20 here
+ahlers_Seurat <- FindNeighbors(ahlers_Seurat, dims = 1:20)
+
+# The FindClusters() function implements this procedure, and contains a resolution parameter that sets the ‘granularity’ of the downstream clustering, with increased values leading to a greater number of clusters. We find that setting this parameter between 0.4-1.2 typically returns good results for single-cell datasets of around 3K cells.
+# Here I'll use .25 (Ahlers used .2)
+ahlers_Seurat <- FindClusters(ahlers_Seurat, resolution = 0.25, cluster.name = 'Unintegrated.clusters')
+```
+
+## UMAP
+```{r}
+ahlers_Seurat <- RunUMAP(ahlers_Seurat, dims = 1:10, , reduction.name = "umap.unintegrated")
+```
+Visualise
+```{r}
+DimPlot(ahlers_Seurat,
+        reduction = "umap.unintegrated",
+        group.by = c('Unintegrated.clusters'),
+        ncol = 1) +
+          labs(title = "UMAP (no integration)")
+
+DimPlot(ahlers_Seurat,
+        reduction = "umap.unintegrated",
+        group.by = c('orig.ident'),
+        ncol = 1) +
+          labs(title = "UMAP (no integration)")
+
+DimPlot(ahlers_Seurat,
+        reduction = "umap.unintegrated",
+        group.by = c('age'),
+        ncol = 1) +
+          labs(title = "UMAP (no integration)")
+```
+
+# QC with integration
+## Integrate
+Integrate libraries from the old and young participants
+First split the RNA assay by old/young status for integration, then integrate
+
+```{r}
+# Older way: FindIntegrationAnchors
+FindIntegrationAnchors
+
+# IntegrateData
+
+ahlers_Seurat[["RNA"]] <- split(ahlers_Seurat[["RNA"]], f = ahlers_Seurat$age)
+
+
+ahlers_Seurat <- IntegrateLayers(object = ahlers_Seurat,
+                method = CCAIntegration,
+                orig.reduction = "pca",
+                new.reduction = "integrated.cca",
+                assay = "RNA",
+    verbose = T)
+```
+
+## Dimensionality reduction
+
+## Cluster
+Now find neighbours in the integrated CCA space, and cluster again
+```{r}
+ahlers_Seurat <- FindNeighbors(ahlers_Seurat, reduction = "integrated.cca", dims = 1:30)
+ahlers_Seurat <- FindClusters(ahlers_Seurat, resolution = 0.25, cluster.name = 'Integrated clusters')
+```
+
+## UMAP
+```{r}
+ahlers_Seurat <- RunUMAP(ahlers_Seurat, dims = 1:10, reduction.name = "umap.integrated")
+DimPlot(ahlers_Seurat, reduction = "umap", group.by = 'orig.ident')
+```
+
+## Compare unintegrated and integrated clusterings
+```{r}
+DimPlot(ahlers_Seurat, reduction = "umap.unintegrated", group.by = 'orig.ident')
+DimPlot(ahlers_Seurat, reduction = "umap.integrated", group.by = 'orig.ident')
+
+
+# Inspect cluster 5 compared to 0 & 3
+cluster5.markers <- FindMarkers(skin.data, ident.1 = 5, ident.2 = c(0, 3))
+head(cluster5.markers, n = 5)
+```
+
+# Save
+```{r}
+saveRDS(ahlers_Seurat, file = "/well/fullerton/users/rxw025/analyses/skin/scRNA_skin/Processed_data/Ahlers_10xsc/Ahlers_clustered_Seurat.Rds")
+```
+

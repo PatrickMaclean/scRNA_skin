@@ -1,0 +1,17 @@
+---
+title: "1.2_Seurat_annotate"
+author: "Patrick Maclean"
+date: "2024-07-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load clustered dataset
+```{r}
+ahlers_Seurat <- readRDS(file = "/well/fullerton/users/rxw025/analyses/skin/RNA-seq/Processed_data/Ahlers_10xsc/Ahlers_clustered_Seurat.Rds")
+
+```
+

@@ -1,0 +1,6 @@
+"0",""
+"0","DimPlot(ahlers_Seurat,"
+"0","        reduction = ""umap.unintegrated"","
+"0","        group.by = c('orig.ident'),"
+"0","        ncol = 1) +"
+"0","          labs(title = ""UMAP (no integration)"")"

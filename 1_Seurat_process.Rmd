@@ -1,0 +1,167 @@
+---
+title: "1_Seurat_process.Rmd"
+author: "Patrick Maclean"
+date: "2024-06-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(Seurat)
+library(SeuratDisk)
+library(tidyverse)
+library(sceasy)
+library(scales)
+library(thematic)
+```
+
+```{r, include=FALSE}
+colour_sequence <- c("#35274A", "#F2300F")
+
+thematic_on(
+  bg = "auto", fg = "auto", accent = "auto", font = NA,
+  sequential = colour_sequence, qualitative = okabe_ito()
+)
+show_col(colour_sequence)
+
+theme_set(theme_bw() +
+        theme(axis.text = element_text(size = 10)))
+```
+
+# Import data
+## Metadata
+```{r}
+# Samplesheet
+samplesheet <- read_delim('/well/fullerton/projects/training/sc_rnaseq/ahlers_10x/metadata/scAhlers_samplesheet.csv')
+```
+
+## Aligned libraries
+This is the result of the nf-core scRNAseq pipeline - trimmed, aligned, empty droplets removed.
+```{r}
+# Define overall STARsolo output directory
+STARsolo_output <- '/well/fullerton/projects/training/sc_rnaseq/ahlers_10x/nfcore/output_star/star/mtx_conversions'
+
+# Define STARsolo output directory for each sample
+samplesheet$STARsolo <- paste0(STARsolo_output, "/", samplesheet$sample, "/", samplesheet$sample, "_custom_emptydrops_filter_matrix.rds")
+
+# Read in each sample's STARsolo output and assign to an individual Seurat object
+ahlers_Seurat_list <- list()
+for (i in 1:nrow(samplesheet)){
+  ahlers_Seurat_list[[i]] <- readRDS(samplesheet$STARsolo[[i]])
+  ahlers_Seurat_list[[i]]$orig.ident <- paste0(samplesheet$sample[[i]])
+  # assign(paste0(samplesheet$sample[[i]]), readRDS(samplesheet$STARsolo[[i]]))
+}
+```
+
+# QC
+## Add QC columns
+```{r}
+# Percent mitochondrial - version of genome used doesn't include mito genes
+# ahlers_Seurat[["percent.mt"]] <- PercentageFeatureSet(ahlers_Seurat, pattern = "^MT-")
+# Percent ribosomal
+for (i in 1:length(ahlers_Seurat_list)){
+ahlers_Seurat_list[[i]][["percent.rb"]] <- PercentageFeatureSet(ahlers_Seurat_list[[i]], pattern = "^RP[SL]")
+}
+
+
+```
+
+## Filter low quality cells
+Remove if unique genes <200 or >7500 (as per Ahlers manuscript)
+```{r}
+for (i in 1:length(ahlers_Seurat_list)){
+ahlers_Seurat_list[[i]] <- subset(ahlers_Seurat_list[[i]],
+                        subset = nFeature_RNA > 200 & nFeature_RNA < 7500)
+}
+
+```
+
+## Normalise
+- Normalise measurement for each cell by total expression
+- Multiply by scale factor (default 10,000)
+- Log transform
+```{r}
+for (i in 1:length(ahlers_Seurat_list)){
+ahlers_Seurat_list[[i]] <- NormalizeData(ahlers_Seurat_list[[i]], normalization.method = "LogNormalize", scale.factor = 10000)
+}
+```
+
+## Scale data
+The ScaleData() function:
+
+Shifts the expression of each gene, so that the mean expression across cells is 0
+Scales the expression of each gene, so that the variance across cells is 1
+This step gives equal weight in downstream analyses, so that highly-expressed genes do not dominate
+The results of this are stored in pbmc[["RNA"]]$scale.data
+By default, only variable features are scaled.
+You can specify the features argument to scale additional features
+```{r}
+all.genes <- rownames(ahlers_Seurat_list[[1]])
+for (i in 1:length(ahlers_Seurat_list)){
+ahlers_Seurat_list[[i]] <- ScaleData(ahlers_Seurat_list[[i]], features = all.genes)
+}
+```
+
+## Integrate across participants
+Here I integrate using the canonical correlation analysis (cca) algorithm - see https://www.singlecellcourse.org/scrna-seq-dataset-integration.html
+```{r}
+# Find variable features
+for (i in 1:length(ahlers_Seurat_list)){
+ahlers_Seurat_list[[i]] <- FindVariableFeatures(ahlers_Seurat_list[[i]], selection.method = "vst", nfeatures = 2000, verbose = F)
+}
+
+# Integrate
+ahlers_anchors <- FindIntegrationAnchors(object.list = ahlers_Seurat_list, dims = 1:30)
+
+IntegrateData(anchorset = ahlers_anchors, dims = 1:30)
+```
+
+
+## Merge Seurat objects
+```{r} 
+ahlers_Seurat <- merge(x = ahlers_Seurat_list[[1]],
+                       y = ahlers_Seurat_list[-1],
+                       add.cell.ids = T)
+
+# Set the active identity for plotting to the sample name
+ahlers_Seurat <- SetIdent(ahlers_Seurat, value = "orig.ident")
+```
+
+## Add metadata
+```{r}
+metadata <- samplesheet %>% select(sample, age, site) %>%
+  mutate(sex = 'female')
+
+add_data <- left_join(ahlers_Seurat[["orig.ident"]], metadata, by = join_by('orig.ident' == 'sample'))
+
+row.names(add_data) <- row.names(ahlers_Seurat[[]])
+
+ahlers_Seurat <- AddMetaData(ahlers_Seurat, metadata = add_data)
+```
+
+## Visualise
+```{r}
+VlnPlot(ahlers_Seurat, features = c("nFeature_RNA", "nCount_RNA"), ncol = 3, flip = T)
+
+# Cell counts
+ahlers_Seurat@meta.data %>% as_tibble() %>% group_by(orig.ident) %>% summarise(n = n())
+
+# Key metrics
+ahlers_Seurat@meta.data %>% as_tibble(rownames = 'cell') %>%
+  pivot_longer(cols = c("nFeature_RNA", "nCount_RNA"), names_to = 'metric', values_to = 'value') %>%
+  ggplot(aes(x = value, y = orig.ident, color = metric)) +
+  geom_violin() + 
+  geom_boxplot(outlier.fill = NA) + 
+  facet_grid(cols = vars(metric), scale = 'free')
+
+```
+
+# Save filtered Seurat object
+```{r}
+saveRDS(ahlers_Seurat, file = "/well/fullerton/users/rxw025/analyses/skin/scRNA_skin/Processed_data/Ahlers_10xsc/Ahlers_filtered_Seurat.Rds")
+```
+
+
