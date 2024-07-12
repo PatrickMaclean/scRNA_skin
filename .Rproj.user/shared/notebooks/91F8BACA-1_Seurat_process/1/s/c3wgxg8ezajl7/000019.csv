@@ -1,3 +1,0 @@
-"0",""
-"0","theme_set(theme_bw() +"
-"0","        theme(axis.text = element_text(size = 10)))"

@@ -1,7 +1,0 @@
-"0","colour_sequence <- c(""#35274A"", ""#F2300F"")"
-"0",""
-"0","thematic_on("
-"0","  bg = ""auto"", fg = ""auto"", accent = ""auto"", font = NA,"
-"0","  sequential = colour_sequence, qualitative = okabe_ito()"
-"0",")"
-"0","show_col(colour_sequence)"

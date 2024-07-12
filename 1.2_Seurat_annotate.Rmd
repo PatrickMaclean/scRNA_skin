@@ -8,6 +8,17 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# setup
+```{r}
+    setExperimentHubOption('cache', '/well/fullerton/users/rxw025/software/R/ExperimentHub')
+
+    #celldex::MonacoImmuneData()
+    #celldex::HumanPrimaryCellAtlasData()
+    #celldex::DatabaseImmuneCellExpressionData()
+    #celldex::BlueprintEncodeData()
+    #celldex::ImmGenData()
+    #celldex::DatabaseImmuneCellExpressionData()
+```
 
 # Load clustered dataset
 ```{r}
