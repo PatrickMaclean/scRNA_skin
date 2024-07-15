@@ -31,7 +31,7 @@ theme_set(theme_bw() +
 
 # Import object
 ```{r}
-ahlers_Seurat <- readRDS(file = "ahlers_Seurat, file = "/well/fullerton/users/rxw025/analyses/skin/scRNA_skin/Processed_data/Ahlers_10xsc/Ahlers_filtered_Seurat.Rds"")
+ahlers_Seurat <- readRDS(file = "/well/fullerton/users/rxw025/analyses/skin/scRNA_skin/Processed_data/Ahlers_10xsc/Ahlers_filtered_Seurat.Rds")
 ```
 
 
@@ -55,6 +55,8 @@ plot1 / plot2
 
 ## Dimensionality reduction
 ```{r}
+# Scale
+ahlers_Seurat <- ScaleData(ahlers_Seurat)
 # Run PCA on selected 2000 most variable features
 ahlers_Seurat <- RunPCA(ahlers_Seurat, features = VariableFeatures(object = ahlers_Seurat))
 
@@ -75,80 +77,33 @@ ahlers_Seurat <- FindNeighbors(ahlers_Seurat, dims = 1:20)
 
 # The FindClusters() function implements this procedure, and contains a resolution parameter that sets the ‘granularity’ of the downstream clustering, with increased values leading to a greater number of clusters. We find that setting this parameter between 0.4-1.2 typically returns good results for single-cell datasets of around 3K cells.
 # Here I'll use .25 (Ahlers used .2)
-ahlers_Seurat <- FindClusters(ahlers_Seurat, resolution = 0.25, cluster.name = 'Unintegrated.clusters')
+ahlers_Seurat <- FindClusters(ahlers_Seurat, resolution = 0.25, cluster.name = 'Integrated.clusters')
 ```
 
 ## UMAP
 ```{r}
-ahlers_Seurat <- RunUMAP(ahlers_Seurat, dims = 1:10, , reduction.name = "umap.unintegrated")
+ahlers_Seurat <- RunUMAP(ahlers_Seurat, dims = 1:10, , reduction.name = "umap.integrated")
 ```
+
 Visualise
 ```{r}
 DimPlot(ahlers_Seurat,
-        reduction = "umap.unintegrated",
-        group.by = c('Unintegrated.clusters'),
+        reduction = "umap.integrated",
+        group.by = c('Integrated.clusters'),
         ncol = 1) +
-          labs(title = "UMAP (no integration)")
+          labs(title = "UMAP (integration)")
 
 DimPlot(ahlers_Seurat,
-        reduction = "umap.unintegrated",
+        reduction = "umap.integrated",
         group.by = c('orig.ident'),
         ncol = 1) +
-          labs(title = "UMAP (no integration)")
+          labs(title = "UMAP (integration)")
 
 DimPlot(ahlers_Seurat,
-        reduction = "umap.unintegrated",
+        reduction = "umap.integrated",
         group.by = c('age'),
         ncol = 1) +
-          labs(title = "UMAP (no integration)")
-```
-
-# QC with integration
-## Integrate
-Integrate libraries from the old and young participants
-First split the RNA assay by old/young status for integration, then integrate
-
-```{r}
-# Older way: FindIntegrationAnchors
-FindIntegrationAnchors
-
-# IntegrateData
-
-ahlers_Seurat[["RNA"]] <- split(ahlers_Seurat[["RNA"]], f = ahlers_Seurat$age)
-
-
-ahlers_Seurat <- IntegrateLayers(object = ahlers_Seurat,
-                method = CCAIntegration,
-                orig.reduction = "pca",
-                new.reduction = "integrated.cca",
-                assay = "RNA",
-    verbose = T)
-```
-
-## Dimensionality reduction
-
-## Cluster
-Now find neighbours in the integrated CCA space, and cluster again
-```{r}
-ahlers_Seurat <- FindNeighbors(ahlers_Seurat, reduction = "integrated.cca", dims = 1:30)
-ahlers_Seurat <- FindClusters(ahlers_Seurat, resolution = 0.25, cluster.name = 'Integrated clusters')
-```
-
-## UMAP
-```{r}
-ahlers_Seurat <- RunUMAP(ahlers_Seurat, dims = 1:10, reduction.name = "umap.integrated")
-DimPlot(ahlers_Seurat, reduction = "umap", group.by = 'orig.ident')
-```
-
-## Compare unintegrated and integrated clusterings
-```{r}
-DimPlot(ahlers_Seurat, reduction = "umap.unintegrated", group.by = 'orig.ident')
-DimPlot(ahlers_Seurat, reduction = "umap.integrated", group.by = 'orig.ident')
-
-
-# Inspect cluster 5 compared to 0 & 3
-cluster5.markers <- FindMarkers(skin.data, ident.1 = 5, ident.2 = c(0, 3))
-head(cluster5.markers, n = 5)
+          labs(title = "UMAP (integration)")
 ```
 
 # Save

@@ -8,20 +8,82 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
 # setup
 ```{r}
-    setExperimentHubOption('cache', '/well/fullerton/users/rxw025/software/R/ExperimentHub')
+library('ExperimentHub')
+library('SingleR')
+library('SingleCellExperiment')
+library('Seurat')
+library('tidyverse')
 
-    #celldex::MonacoImmuneData()
+    setExperimentHubOption('cache', '/well/fullerton/users/rxw025/software/R/ExperimentHub')
+    setAnnotationHubOption('cache', '/well/fullerton/users/rxw025/software/R/ExperimentHub')
+    setExperimentHubOption('LOCAL', TRUE)
+
+
+    #celldex::MonacoImmuneData(localHub=TRUE)
     #celldex::HumanPrimaryCellAtlasData()
     #celldex::DatabaseImmuneCellExpressionData()
     #celldex::BlueprintEncodeData()
     #celldex::ImmGenData()
     #celldex::DatabaseImmuneCellExpressionData()
+    
+human_cell_atlas <- celldex::HumanPrimaryCellAtlasData()
 ```
 
 # Load clustered dataset
 ```{r}
 ahlers_Seurat <- readRDS(file = "/well/fullerton/users/rxw025/analyses/skin/scRNA_skin/Processed_data/Ahlers_10xsc/Ahlers_clustered_Seurat.Rds")
+
+# Convert to SummarisedExperiment style
+ahlers_sce <- as.SingleCellExperiment(DietSeurat(ahlers_Seurat))
+```
+
+```{r}
+hca_ahlers_main <- SingleR(test = ahlers_sce,
+                      assay.type.test = 1,
+                      ref = human_cell_atlas,
+                      labels = human_cell_atlas$label.main)
+
+
+hca_ahlers_fine <- SingleR(test = ahlers_sce,
+                      assay.type.test = 1,
+                      ref = human_cell_atlas,
+                      labels = human_cell_atlas$label.fine)
+```
+
+
+```{r}
+hca_ahlers_main %>% as_tibble() %>%
+  group_by(pruned.labels) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(y = reorder(pruned.labels,n), x = n, fill = pruned.labels)) +
+  geom_bar(stat = 'identity') +
+  labs(x = "Cells",
+       y = "",
+       title = "HCA broad labels",
+       subtitle = 'Ahlers dataset')
+ggsave('Plots/Cell_annotation/Ahlers_broad_HCA_barplot.pdf', height = 5, width = 7)
+
+hca_ahlers_main %>% as_tibble() %>%
+  group_by(pruned.labels) %>%
+  summarise(perc = (n()/83521)*100) %>%
+  arrange(desc(perc))
+
+
+hca_ahlers_fine %>% as_tibble() %>%
+  group_by(pruned.labels) %>%
+  summarise(n = n()) %>%
+  filter(n>75) %>%
+  ggplot(aes(y = reorder(pruned.labels,n), x = n)) +
+  geom_bar(stat = 'identity') +
+  labs(x = "Cells",
+       y = "",
+       title = "HCA fine labels",
+       subtitle = 'Ahlers dataset')
+ggsave('Plots/Cell_annotation/Ahlers_fine_HCA_barplot.pdf', height = 5, width = 7)
+
 ```
 
